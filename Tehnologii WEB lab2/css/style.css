@@ -1,0 +1,56 @@
+body{
+    font-family: Arial;
+    background:#f4f4f4;
+    margin:0;
+}
+
+/* header */
+header{
+    background:#8d6e63;
+    color:white;
+    text-align:center;
+    padding:15px;
+}
+
+/* meniu */
+nav{
+    background:#d7ccc8;
+    padding:10px;
+}
+
+nav a{
+    color:black;
+    margin:10px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+/* conținut */
+.container{
+    margin:20px;
+}
+
+/* titluri */
+h2{
+    color:#5d4037;
+}
+
+/* listă */
+ul{
+    padding-left:20px;
+}
+
+/* taguri */
+.tag{
+    background:#efebe9;
+    padding:4px 6px;
+    margin:3px;
+}
+
+/* footer */
+footer{
+    background:#8d6e63;
+    color:white;
+    text-align:center;
+    padding:10px;
+}

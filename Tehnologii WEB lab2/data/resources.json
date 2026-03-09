@@ -1,0 +1,30 @@
+[
+    {
+      "name": "Biblioteca Centrală",
+      "type": "study",
+      "location": "Clădirea A, Etaj 1",
+      "program": "08:00 - 20:00",
+      "tags": ["carti", "studiu", "wifi", "liniste"]
+    },
+    {
+      "name": "Cantina Studențească",
+      "type": "food",
+      "location": "Clădirea B, Parter",
+      "program": "07:30 - 18:00",
+      "tags": ["mancare", "studenti", "meniu", "pauza"]
+    },
+    {
+      "name": "Sala de Evenimente",
+      "type": "events",
+      "location": "Clădirea C, Etaj 2",
+      "program": "10:00 - 19:00",
+      "tags": ["workshop", "seminar", "conferinta", "networking"]
+    },
+    {
+      "name": "Laborator IT",
+      "type": "study",
+      "location": "Clădirea D, Etaj 1",
+      "program": "09:00 - 18:00",
+      "tags": ["calculatoare", "proiecte", "internet", "studiu"]
+    }
+  ]
