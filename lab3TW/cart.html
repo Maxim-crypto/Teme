@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coș de cumpărături</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="index.html">Acasă</a>
+            <button class="btn-danger" id="clearCartBtn">Golește Coșul</button>
+        </nav>
+
+        <div class="card">
+            <h1>Coș de cumpărături</h1>
+            <form id="cartForm">
+                <div>
+                    <label for="product">Produs</label>
+                    <select id="product"></select>
+                </div>
+
+                <div>
+                    <label for="quantity">Cantitate</label>
+                    <input type="number" id="quantity" min="1" max="10" value="1" required>
+                </div>
+
+                <button type="submit">Adaugă în Coș</button>
+            </form>
+            <div id="messageBox"></div>
+        </div>
+
+        <div class="card">
+            <h2>Produse în coș</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Produs</th>
+                            <th>Cantitate</th>
+                            <th>Preț unitar</th>
+                            <th>Subtotal</th>
+                            <th>Acțiune</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cartTable"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="right">TOTAL</th>
+                            <th id="totalCell">0 lei</th>
+                            <th></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        const products = {
+            laptop: { name: 'Laptop', price: 2500 },
+            telefon: { name: 'Telefon', price: 1200 },
+            tableta: { name: 'Tabletă', price: 800 },
+            casti: { name: 'Căști', price: 150 }
+        };
+
+        function applyTheme() {
+            document.body.className = CookieManager.get('theme') || 'light';
+            document.body.style.fontSize = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        function requireSession() {
+            const session = StorageManager.getSession('session');
+            if (!session) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return session;
+        }
+
+        function getCart() {
+            return StorageManager.getSession('cart') || {};
+        }
+
+        function saveCart(cart) {
+            StorageManager.setSession('cart', cart);
+        }
+
+        function populateProducts() {
+            const select = document.getElementById('product');
+            select.innerHTML = Object.entries(products).map(([key, product]) =>
+                `<option value="${key}">${product.name} - ${product.price} lei</option>`
+            ).join('');
+        }
+
+        function showMessage(text, type='alert-success') {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function renderCart() {
+            const cart = getCart();
+            const tbody = document.getElementById('cartTable');
+            let total = 0;
+            const entries = Object.entries(cart);
+
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty">Coșul este gol.</td></tr>';
+                document.getElementById('totalCell').textContent = '0 lei';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(([key, qty]) => {
+                const product = products[key];
+                const subtotal = product.price * qty;
+                total += subtotal;
+                return `
+                    <tr>
+                        <td>${product.name}</td>
+                        <td>${qty}</td>
+                        <td>${product.price} lei</td>
+                        <td>${subtotal} lei</td>
+                        <td><button class="btn-danger" onclick="removeItem('${key}')">Șterge</button></td>
+                    </tr>
+                `;
+            }).join('');
+
+            document.getElementById('totalCell').textContent = `${total} lei`;
+        }
+
+        function removeItem(key) {
+            const cart = getCart();
+            delete cart[key];
+            saveCart(cart);
+            renderCart();
+        }
+
+        document.getElementById('cartForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const productKey = document.getElementById('product').value;
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+
+            if (quantity < 1 || quantity > 10) {
+                showMessage('Cantitatea trebuie să fie între 1 și 10.', 'alert-error');
+                return;
+            }
+
+            const cart = getCart();
+            cart[productKey] = (cart[productKey] || 0) + quantity;
+            saveCart(cart);
+            renderCart();
+            showMessage('Produsul a fost adăugat în coș.');
+            document.getElementById('quantity').value = 1;
+        });
+
+        document.getElementById('clearCartBtn').addEventListener('click', () => {
+            StorageManager.removeSession('cart');
+            renderCart();
+            showMessage('Coșul a fost golit.');
+        });
+
+        applyTheme();
+        requireSession();
+        populateProducts();
+        renderCart();
+    </script>
+</body>
+</html>

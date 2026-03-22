@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Înregistrare</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Acasă</a>
+            <a href="login.html">Login</a>
+        </nav>
+
+        <div class="card">
+            <h1>Înregistrare utilizator nou</h1>
+            <form id="registerForm">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" minlength="3" required>
+                </div>
+
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div>
+                    <label for="password">Parolă</label>
+                    <input type="password" id="password" minlength="6" required>
+                </div>
+
+                <div>
+                    <label for="confirmPassword">Confirmă parola</label>
+                    <input type="password" id="confirmPassword" minlength="6" required>
+                </div>
+
+                <button type="submit">Creează cont</button>
+            </form>
+            <div id="messageBox"></div>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme() {
+            document.body.className = CookieManager.get('theme') || 'light';
+            document.body.style.fontSize = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        function ensureUsers() {
+            const users = StorageManager.getLocal('users');
+            if (!Array.isArray(users)) {
+                StorageManager.setLocal('users', []);
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const users = StorageManager.getLocal('users') || [];
+            const messageBox = document.getElementById('messageBox');
+
+            if (!username || !email || !password || !confirmPassword) {
+                messageBox.innerHTML = '<div class="alert-error">Toate câmpurile sunt obligatorii.</div>';
+                return;
+            }
+
+            if (username.length < 3) {
+                messageBox.innerHTML = '<div class="alert-error">Username-ul trebuie să aibă minim 3 caractere.</div>';
+                return;
+            }
+
+            if (password.length < 6) {
+                messageBox.innerHTML = '<div class="alert-error">Parola trebuie să aibă minim 6 caractere.</div>';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                messageBox.innerHTML = '<div class="alert-error">Parolele nu coincid.</div>';
+                return;
+            }
+
+            if (users.some(user => user.username.toLowerCase() === username.toLowerCase())) {
+                messageBox.innerHTML = '<div class="alert-error">Username-ul există deja.</div>';
+                return;
+            }
+
+            if (users.some(user => user.email.toLowerCase() === email)) {
+                messageBox.innerHTML = '<div class="alert-error">Email-ul există deja.</div>';
+                return;
+            }
+
+            const newUser = {
+                id: Date.now(),
+                username,
+                email,
+                password
+            };
+
+            users.push(newUser);
+            StorageManager.setLocal('users', users);
+            messageBox.innerHTML = '<div class="alert-success">Cont creat cu succes. Vei fi redirecționat către login.</div>';
+
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1200);
+        });
+
+        applyTheme();
+        ensureUsers();
+    </script>
+</body>
+</html>

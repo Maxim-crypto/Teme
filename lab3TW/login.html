@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autentificare</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Acasă</a>
+            <a href="register.html">Înregistrare</a>
+            <a href="dashboard.html">Dashboard</a>
+        </nav>
+
+        <div class="card">
+            <h1>Autentificare</h1>
+            <form id="loginForm">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required>
+                </div>
+
+                <div>
+                    <label for="password">Parolă</label>
+                    <input type="password" id="password" required>
+                </div>
+
+                <div class="inline">
+                    <label style="margin:0; font-weight:400;">
+                        <input type="checkbox" id="rememberMe"> Ține-mă minte
+                    </label>
+                </div>
+
+                <button type="submit">Login</button>
+            </form>
+            <div id="messageBox"></div>
+            <p class="small">Utilizatori impliciți: <strong>admin / password</strong> și <strong>student / student123</strong></p>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        const defaultUsers = [
+            { id: 1, username: 'admin', password: 'password', email: 'admin@example.com' },
+            { id: 2, username: 'student', password: 'student123', email: 'student@example.com' }
+        ];
+
+        function applyTheme() {
+            document.body.className = CookieManager.get('theme') || 'light';
+            document.body.style.fontSize = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        function ensureUsers() {
+            const users = StorageManager.getLocal('users');
+            if (!Array.isArray(users) || !users.length) {
+                StorageManager.setLocal('users', defaultUsers);
+            }
+        }
+
+        function populateRememberedUser() {
+            const remembered = StorageManager.getLocal('rememberedUsername');
+            if (remembered) {
+                document.getElementById('username').value = remembered;
+                document.getElementById('rememberMe').checked = true;
+            }
+        }
+
+        function generateSessionId() {
+            return 'sess-' + Math.random().toString(36).slice(2) + Date.now();
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const users = StorageManager.getLocal('users') || [];
+            const user = users.find(u => u.username === username && u.password === password);
+            const messageBox = document.getElementById('messageBox');
+
+            if (!user) {
+                messageBox.innerHTML = '<div class="alert-error">Username sau parolă incorectă.</div>';
+                return;
+            }
+
+            if (rememberMe) {
+                StorageManager.setLocal('rememberedUsername', user.username);
+            } else {
+                StorageManager.removeLocal('rememberedUsername');
+            }
+
+            StorageManager.setSession('session', {
+                userId: user.id,
+                username: user.username,
+                email: user.email,
+                loginTime: new Date().toISOString(),
+                sessionId: generateSessionId()
+            });
+
+            messageBox.innerHTML = '<div class="alert-success">Autentificare reușită. Redirecționare...</div>';
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        });
+
+        applyTheme();
+        ensureUsers();
+        populateRememberedUser();
+    </script>
+</body>
+</html>

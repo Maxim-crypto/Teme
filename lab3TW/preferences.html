@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setări Preferințe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Acasă</a>
+            <a href="cookies-info.html">Cookies Info</a>
+            <a href="login.html">Login</a>
+        </nav>
+
+        <div class="card">
+            <h1>Preferințele utilizatorului</h1>
+            <form id="preferencesForm">
+                <div>
+                    <label for="username">Nume utilizator</label>
+                    <input type="text" id="username" required>
+                </div>
+
+                <div>
+                    <label for="theme">Tema</label>
+                    <select id="theme">
+                        <option value="light">Luminos</option>
+                        <option value="dark">Întunecat</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="language">Limba</label>
+                    <select id="language">
+                        <option value="Română">Română</option>
+                        <option value="English">English</option>
+                        <option value="Français">Français</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="fontSize">Dimensiune font</label>
+                    <select id="fontSize">
+                        <option value="14px">14px</option>
+                        <option value="16px">16px</option>
+                        <option value="18px">18px</option>
+                        <option value="20px">20px</option>
+                    </select>
+                </div>
+
+                <button type="submit">Salvează preferințele</button>
+            </form>
+            <div id="messageBox"></div>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.className = theme;
+        }
+
+        function applyFontSize() {
+            const fontSize = StorageManager.getLocal('fontSize') || '16px';
+            document.body.style.fontSize = fontSize;
+        }
+
+        function loadFormData() {
+            document.getElementById('username').value = CookieManager.get('username') || '';
+            document.getElementById('theme').value = CookieManager.get('theme') || 'light';
+            document.getElementById('language').value = StorageManager.getLocal('language') || 'Română';
+            document.getElementById('fontSize').value = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        document.getElementById('theme').addEventListener('change', (e) => {
+            document.body.className = e.target.value;
+        });
+
+        document.getElementById('fontSize').addEventListener('change', (e) => {
+            document.body.style.fontSize = e.target.value;
+        });
+
+        document.getElementById('preferencesForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value.trim();
+            const theme = document.getElementById('theme').value;
+            const language = document.getElementById('language').value;
+            const fontSize = document.getElementById('fontSize').value;
+
+            CookieManager.set('username', username || 'Vizitator', 365);
+            CookieManager.set('theme', theme, 365);
+            StorageManager.setLocal('language', language);
+            StorageManager.setLocal('fontSize', fontSize);
+
+            document.getElementById('messageBox').innerHTML = '<div class="alert-success">Preferințele au fost salvate cu succes. Vei fi redirecționat către pagina principală.</div>';
+            document.body.className = theme;
+            document.body.style.fontSize = fontSize;
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        });
+
+        applyTheme();
+        applyFontSize();
+        loadFormData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laborator 3 - Acasă</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 id="welcomeTitle">Bine ai venit!</h1>
+            <p id="visitInfo"></p>
+            <p class="small">Această pagină citește date din cookies, localStorage și sessionStorage.</p>
+        </div>
+
+        <nav>
+            <a href="preferences.html">Setări Preferințe</a>
+            <a href="cookies-info.html">Vizualizare Cookies</a>
+            <a href="login.html">Autentificare</a>
+            <button class="btn-danger" id="clearAllBtn">Șterge Tot</button>
+        </nav>
+
+        <div id="messageBox"></div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>Cookie-uri active</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nume</th>
+                                <th>Valoare</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cookiesTable"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>localStorage</h2>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cheie</th>
+                                <th>Valoare</th>
+                            </tr>
+                        </thead>
+                        <tbody id="localTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>sessionStorage</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cheie</th>
+                            <th>Valoare</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme() {
+            const theme = CookieManager.get('theme') || 'light';
+            document.body.className = theme;
+        }
+
+        function showMessage(text, type = 'alert-success') {
+            document.getElementById('messageBox').innerHTML = `<div class="${type}">${text}</div>`;
+        }
+
+        function renderTableBody(elementId, data) {
+            const tbody = document.getElementById(elementId);
+            const entries = Object.entries(data || {});
+
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="2" class="empty">Nu există date.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(([key, value]) => `
+                <tr>
+                    <td>${key}</td>
+                    <td>${typeof value === 'object' ? JSON.stringify(value) : value}</td>
+                </tr>
+            `).join('');
+        }
+
+        function initVisits() {
+            const username = CookieManager.get('username') || 'Vizitator';
+            let visits = parseInt(CookieManager.get('visits') || '0', 10);
+            visits += 1;
+            CookieManager.set('visits', visits, 365);
+
+            document.getElementById('welcomeTitle').textContent = `Bine ai venit, ${username}!`;
+            document.getElementById('visitInfo').textContent = `Număr vizite: ${visits}`;
+        }
+
+        function refreshData() {
+            renderTableBody('cookiesTable', CookieManager.getAll());
+            renderTableBody('localTable', StorageManager.getAllLocal());
+            renderTableBody('sessionTable', StorageManager.getAllSession());
+        }
+
+        document.getElementById('clearAllBtn').addEventListener('click', () => {
+            if (!confirm('Sigur vrei să ștergi toate cookie-urile și storage-urile?')) return;
+            CookieManager.deleteAll();
+            StorageManager.clearLocal();
+            StorageManager.clearSession();
+            showMessage('Toate datele au fost șterse. Pagina se va reîncărca.', 'alert-success');
+            setTimeout(() => window.location.reload(), 700);
+        });
+
+        applyTheme();
+        initVisits();
+        refreshData();
+    </script>
+</body>
+</html>

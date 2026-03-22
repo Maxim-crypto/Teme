@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informații Cookies și Storage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Acasă</a>
+            <a href="preferences.html">Preferințe</a>
+            <a href="login.html">Login</a>
+        </nav>
+
+        <div class="card">
+            <h1>Analiză Cookies, localStorage și sessionStorage</h1>
+            <p><strong>document.cookie brut:</strong></p>
+            <pre id="rawCookies"></pre>
+        </div>
+
+        <div class="card">
+            <h2>Cookies</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nume</th>
+                            <th>Valoare</th>
+                            <th>Lungime</th>
+                            <th>Acțiune</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cookiesTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>localStorage</h2>
+            <pre id="localJson"></pre>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cheie</th>
+                            <th>Valoare</th>
+                            <th>Dimensiune</th>
+                            <th>Acțiune</th>
+                        </tr>
+                    </thead>
+                    <tbody id="localTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>sessionStorage</h2>
+            <pre id="sessionJson"></pre>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cheie</th>
+                            <th>Valoare</th>
+                            <th>Dimensiune</th>
+                            <th>Acțiune</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sessionTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Tabel comparativ</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Caracteristică</th>
+                            <th>Cookies</th>
+                            <th>localStorage</th>
+                            <th>sessionStorage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Capacitate</td>
+                            <td>~4KB</td>
+                            <td>~5-10MB</td>
+                            <td>~5MB</td>
+                        </tr>
+                        <tr>
+                            <td>Expirare</td>
+                            <td>Până la data setată sau la finalul sesiunii</td>
+                            <td>Persistent până la ștergere</td>
+                            <td>La închiderea tab-ului/sesiunii</td>
+                        </tr>
+                        <tr>
+                            <td>Trimis la server?</td>
+                            <td>Da, automat la request-uri HTTP</td>
+                            <td>Nu</td>
+                            <td>Nu</td>
+                        </tr>
+                        <tr>
+                            <td>Accesibil din?</td>
+                            <td>Browser + server</td>
+                            <td>JavaScript în același origin</td>
+                            <td>JavaScript în același origin și tab</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme() {
+            document.body.className = CookieManager.get('theme') || 'light';
+            document.body.style.fontSize = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        function getLength(value) {
+            return String(value).length;
+        }
+
+        function renderCookies() {
+            const data = CookieManager.getAll();
+            document.getElementById('rawCookies').textContent = document.cookie || '(gol)';
+            const tbody = document.getElementById('cookiesTable');
+            const entries = Object.entries(data);
+
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">Nu există cookie-uri active.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(([name, value]) => `
+                <tr>
+                    <td>${name}</td>
+                    <td>${value}</td>
+                    <td>${getLength(value)}</td>
+                    <td><button class="btn-danger" onclick="deleteCookie('${name}')">Șterge</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderStorage(tableId, jsonId, data, deleteFnName) {
+            document.getElementById(jsonId).textContent = JSON.stringify(data, null, 2) || '{}';
+            const tbody = document.getElementById(tableId);
+            const entries = Object.entries(data || {});
+
+            if (!entries.length) {
+                tbody.innerHTML = '<tr><td colspan="4" class="empty">Nu există date.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = entries.map(([key, value]) => {
+                const text = typeof value === 'object' ? JSON.stringify(value) : String(value);
+                return `
+                    <tr>
+                        <td>${key}</td>
+                        <td>${text}</td>
+                        <td>${getLength(text)}</td>
+                        <td><button class="btn-danger" onclick="${deleteFnName}('${key}')">Șterge</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function refreshAll() {
+            renderCookies();
+            renderStorage('localTable', 'localJson', StorageManager.getAllLocal(), 'deleteLocal');
+            renderStorage('sessionTable', 'sessionJson', StorageManager.getAllSession(), 'deleteSession');
+        }
+
+        function deleteCookie(name) {
+            CookieManager.delete(name);
+            refreshAll();
+        }
+
+        function deleteLocal(key) {
+            StorageManager.removeLocal(key);
+            refreshAll();
+        }
+
+        function deleteSession(key) {
+            StorageManager.removeSession(key);
+            refreshAll();
+        }
+
+        applyTheme();
+        refreshAll();
+    </script>
+</body>
+</html>

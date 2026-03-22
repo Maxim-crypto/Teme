@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html">Acasă</a>
+            <a href="cart.html">Coș de cumpărături</a>
+            <a href="dashboard.html" target="_blank">Deschide în tab nou</a>
+            <button id="logoutBtn" class="btn-danger">Deconectare</button>
+        </nav>
+
+        <div class="card">
+            <h1>Dashboard utilizator</h1>
+            <div id="sessionInfo"></div>
+        </div>
+
+        <div class="card">
+            <h2>Date brute din sessionStorage</h2>
+            <pre id="rawSessionData"></pre>
+            <p class="small">Deschide această pagină într-un tab nou și observă comportamentul sessionStorage.</p>
+        </div>
+    </div>
+
+    <script src="js/cookies.js"></script>
+    <script src="js/storage.js"></script>
+    <script>
+        function applyTheme() {
+            document.body.className = CookieManager.get('theme') || 'light';
+            document.body.style.fontSize = StorageManager.getLocal('fontSize') || '16px';
+        }
+
+        function requireSession() {
+            const session = StorageManager.getSession('session');
+            if (!session) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return session;
+        }
+
+        function formatDuration(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function renderSession() {
+            const session = requireSession();
+            if (!session) return;
+
+            const loginTime = new Date(session.loginTime);
+            const now = new Date();
+            const duration = formatDuration(now - loginTime);
+
+            document.getElementById('sessionInfo').innerHTML = `
+                <p><strong>ID sesiune:</strong> ${session.sessionId}</p>
+                <p><strong>Username:</strong> ${session.username}</p>
+                <p><strong>Email:</strong> ${session.email}</p>
+                <p><strong>Ora autentificării:</strong> ${loginTime.toLocaleString('ro-RO')}</p>
+                <p><strong>Durata sesiunii:</strong> ${duration}</p>
+            `;
+            document.getElementById('rawSessionData').textContent = JSON.stringify(StorageManager.getAllSession(), null, 2);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            StorageManager.clearSession();
+            window.location.href = 'login.html';
+        });
+
+        applyTheme();
+        requireSession();
+        renderSession();
+        setInterval(renderSession, 1000);
+    </script>
+</body>
+</html>
